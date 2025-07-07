@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>API Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="settingsForm">
+                    <div class="mb-4">
+                        <label for="geminiApiKey" class="form-label">
+                            <i class="fas fa-key me-2"></i>Gemini API Key
+                        </label>
+                        <input type="password" class="form-control" id="geminiApiKey" placeholder="Enter your Gemini API key">
+                        <div class="form-text">
+                            Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="imagefxAuthToken" class="form-label">
+                            <i class="fas fa-shield-alt me-2"></i>ImageFX Auth Token
+                        </label>
+                        <input type="password" class="form-control" id="imagefxAuthToken" placeholder="Enter your ImageFX auth token">
+                        <div class="form-text">
+                            Extract this token from ImageFX website using browser developer tools
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-images me-2"></i>Image Generation Providers
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-google text-primary me-2"></i>ImageFX (Google)
+                                </h6>
+                                <p class="card-text">
+                                    <strong>Quality:</strong> Excellent<br>
+                                    <strong>Speed:</strong> Fast<br>
+                                    <strong>Cost:</strong> Requires auth token<br>
+                                    <strong>Models:</strong> Imagen 3.5, Imagen 3.1
+                                </p>
+                                <span class="badge bg-warning">Requires Setup</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-seedling text-success me-2"></i>Pollinations (Free)
+                                </h6>
+                                <p class="card-text">
+                                    <strong>Quality:</strong> Very Good<br>
+                                    <strong>Speed:</strong> Good (5s delay)<br>
+                                    <strong>Cost:</strong> Free<br>
+                                    <strong>Models:</strong> Flux, Turbo
+                                </p>
+                                <span class="badge bg-success">Ready to Use</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>Pollinations Models:</h6>
+                    <div class="row">
+                        {% for key, value in pollinations_models.items() %}
+                        <div class="col-md-6 mb-2">
+                            <div class="card card-body bg-light">
+                                <h6 class="card-title small">{{ value }}</h6>
+                                <p class="card-text small text-muted">
+                                    {% if key == 'flux' %}
+                                    High-quality, general purpose
+                                    {% elif key == 'turbo' %}
+                                    Fast generation, good quality
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('main.pollinations_test') }}" class="btn btn-success">
+                        <i class="fas fa-flask me-2"></i>Test Pollinations API
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Setup Instructions
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>Gemini API Key:</h6>
+                <ol>
+                    <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></li>
+                    <li>Sign in with your Google account</li>
+                    <li>Click "Create API Key"</li>
+                    <li>Copy the generated API key and paste it above</li>
+                </ol>
+                
+                <h6 class="mt-4">ImageFX Auth Token:</h6>
+                <ol>
+                    <li>Visit <a href="https://labs.google" target="_blank">Google Labs</a></li>
+                    <li>Navigate to ImageFX</li>
+                    <li>Open browser Developer Tools (F12)</li>
+                    <li>Go to Network tab and generate an image</li>
+                    <li>Find the request to "runImageFx" and copy the Authorization header value</li>
+                    <li>Paste the token above (include "Bearer " prefix if present)</li>
+                </ol>
+                
+                <h6 class="mt-4">Pollinations (No Setup Required):</h6>
+                <p>Pollinations API works out of the box with no authentication required. It provides free access to Flux and Turbo AI image generation models.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Settings JavaScript with proper JSON storage
+class Settings {
+    constructor() {
+        this.initializeElements();
+        this.setupEventListeners();
+        this.loadSettings();
+    }
+    
+    initializeElements() {
+        this.form = document.getElementById('settingsForm');
+        this.geminiApiKey = document.getElementById('geminiApiKey');
+        this.imagefxAuthToken = document.getElementById('imagefxAuthToken');
+    }
+    
+    setupEventListeners() {
+        this.form.addEventListener('submit', (e) => this.saveSettings(e));
+    }
+    
+    async loadSettings() {
+        try {
+            const data = await Utils.makeRequest('/api/settings');
+            
+            // Load actual values from JSON storage
+            if (data.gemini_api_key) {
+                this.geminiApiKey.value = data.gemini_api_key;
+            }
+            
+            if (data.imagefx_auth_token) {
+                this.imagefxAuthToken.value = data.imagefx_auth_token;
+            }
+            
+        } catch (error) {
+            Utils.showToast('Error loading settings: ' + error.message, 'error');
+        }
+    }
+    
+    async saveSettings(e) {
+        e.preventDefault();
+        
+        try {
+            const settings = {
+                gemini_api_key: this.geminiApiKey.value,
+                imagefx_auth_token: this.imagefxAuthToken.value
+            };
+            
+            await Utils.makeRequest('/api/settings', {
+                method: 'POST',
+                body: JSON.stringify(settings)
+            });
+            
+            Utils.showToast('Settings saved successfully!');
+            
+        } catch (error) {
+            Utils.showToast('Error saving settings: ' + error.message, 'error');
+        }
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    new Settings();
+});
+</script>
+{% endblock %}

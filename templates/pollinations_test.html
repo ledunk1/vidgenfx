@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Pollinations API Test{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-flask me-2"></i>Pollinations API Test
+            <small class="text-muted">Test Flux & Turbo Models</small>
+        </h2>
+    </div>
+</div>
+
+<!-- Test Single Image -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-image me-2"></i>Single Image Generation Test
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="testPrompt" class="form-label">Test Prompt</label>
+                        <textarea class="form-control" id="testPrompt" rows="3" 
+                                placeholder="Enter your test prompt...">A beautiful sunset over the ocean with dramatic clouds</textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="testModel" class="form-label">Model</label>
+                        <select class="form-select" id="testModel">
+                            {% for key, value in pollinations_models.items() %}
+                            <option value="{{ key }}" {% if key == 'flux' %}selected{% endif %}>{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="testAspectRatio" class="form-label">Aspect Ratio</label>
+                        <select class="form-select" id="testAspectRatio">
+                            {% for key, value in aspect_ratios.items() %}
+                            <option value="{{ value.value }}">{{ value.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enhancePrompt">
+                            <label class="form-check-label" for="enhancePrompt">
+                                Enhance Prompt with AI
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="safeMode">
+                            <label class="form-check-label" for="safeMode">
+                                Safe Mode (NSFW Filter)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="customSeed" class="form-label">Custom Seed (Optional)</label>
+                        <input type="number" class="form-control" id="customSeed" placeholder="Leave empty for random">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button id="testSingleBtn" class="btn btn-primary">
+                        <i class="fas fa-play me-2"></i>Test Single Image
+                    </button>
+                    <button id="testAllModelsBtn" class="btn btn-success ms-2">
+                        <i class="fas fa-layer-group me-2"></i>Test All Models
+                    </button>
+                </div>
+                
+                <!-- Progress -->
+                <div id="testProgress" class="mt-3" style="display: none;">
+                    <div class="progress mb-2">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div id="testProgressText" class="text-muted"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Results -->
+<div class="row" id="testResults" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Test Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="testResultsContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Comparison -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Model Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-bolt text-warning me-2"></i>Flux Model
+                                </h6>
+                                <p class="card-text">
+                                    <strong>Type:</strong> High-quality general purpose<br>
+                                    <strong>Speed:</strong> Standard (5s delay)<br>
+                                    <strong>Quality:</strong> Excellent<br>
+                                    <strong>Best for:</strong> Detailed, artistic images
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-rocket text-success me-2"></i>Turbo Model
+                                </h6>
+                                <p class="card-text">
+                                    <strong>Type:</strong> Fast generation<br>
+                                    <strong>Speed:</strong> Fast (5s delay)<br>
+                                    <strong>Quality:</strong> Good<br>
+                                    <strong>Best for:</strong> Quick prototypes, testing
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class PollinationsTest {
+    constructor() {
+        this.initializeElements();
+        this.setupEventListeners();
+    }
+    
+    initializeElements() {
+        this.testPrompt = document.getElementById('testPrompt');
+        this.testModel = document.getElementById('testModel');
+        this.testAspectRatio = document.getElementById('testAspectRatio');
+        this.enhancePrompt = document.getElementById('enhancePrompt');
+        this.safeMode = document.getElementById('safeMode');
+        this.customSeed = document.getElementById('customSeed');
+        this.testSingleBtn = document.getElementById('testSingleBtn');
+        this.testAllModelsBtn = document.getElementById('testAllModelsBtn');
+        this.testProgress = document.getElementById('testProgress');
+        this.testProgressText = document.getElementById('testProgressText');
+        this.testResults = document.getElementById('testResults');
+        this.testResultsContent = document.getElementById('testResultsContent');
+    }
+    
+    setupEventListeners() {
+        this.testSingleBtn.addEventListener('click', () => this.testSingleImage());
+        this.testAllModelsBtn.addEventListener('click', () => this.testAllModels());
+    }
+    
+    showProgress(text, percentage) {
+        this.testProgress.style.display = 'block';
+        this.testProgress.querySelector('.progress-bar').style.width = percentage + '%';
+        this.testProgressText.textContent = text;
+    }
+    
+    hideProgress() {
+        this.testProgress.style.display = 'none';
+    }
+    
+    async testSingleImage() {
+        try {
+            const prompt = this.testPrompt.value.trim();
+            if (!prompt) {
+                Utils.showToast('Please enter a test prompt', 'error');
+                return;
+            }
+            
+            this.testSingleBtn.disabled = true;
+            this.showProgress('Generating image with Pollinations API...', 50);
+            
+            const data = {
+                prompt: prompt,
+                model: this.testModel.value,
+                aspect_ratio: this.testAspectRatio.value,
+                enhance: this.enhancePrompt.checked,
+                safe: this.safeMode.checked
+            };
+            
+            if (this.customSeed.value) {
+                data.seed = parseInt(this.customSeed.value);
+            }
+            
+            const startTime = Date.now();
+            const response = await Utils.makeRequest('/pollinations/generate-image', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const endTime = Date.now();
+            const generationTime = (endTime - startTime) / 1000;
+            
+            this.showProgress('Image generated successfully!', 100);
+            
+            // Display results
+            this.displaySingleResult(response, generationTime);
+            
+            Utils.showToast('Image generated successfully!');
+            
+        } catch (error) {
+            Utils.showToast(error.message, 'error');
+        } finally {
+            this.testSingleBtn.disabled = false;
+            setTimeout(() => this.hideProgress(), 2000);
+        }
+    }
+    
+    async testAllModels() {
+        try {
+            const prompt = this.testPrompt.value.trim();
+            if (!prompt) {
+                Utils.showToast('Please enter a test prompt', 'error');
+                return;
+            }
+            
+            this.testAllModelsBtn.disabled = true;
+            this.showProgress('Testing all Pollinations models...', 10);
+            
+            const response = await Utils.makeRequest('/pollinations/test-models', {
+                method: 'POST',
+                body: JSON.stringify({ prompt: prompt })
+            });
+            
+            this.showProgress('All models tested!', 100);
+            this.displayAllModelsResult(response);
+            
+            Utils.showToast('All models tested successfully!');
+            
+        } catch (error) {
+            Utils.showToast(error.message, 'error');
+        } finally {
+            this.testAllModelsBtn.disabled = false;
+            setTimeout(() => this.hideProgress(), 2000);
+        }
+    }
+    
+    displaySingleResult(response, generationTime) {
+        const downloadUrl = `/pollinations/download-image/${response.session_id}/${response.filename}`;
+        
+        this.testResultsContent.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="${downloadUrl}" class="img-fluid rounded" alt="Generated Image" 
+                         style="max-height: 400px; width: 100%; object-fit: contain;">
+                </div>
+                <div class="col-md-6">
+                    <h6>Generation Details</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Model:</strong></td><td>${response.model}</td></tr>
+                        <tr><td><strong>Generation Time:</strong></td><td>${generationTime.toFixed(2)}s</td></tr>
+                        <tr><td><strong>File Size:</strong></td><td>${Utils.formatFileSize(response.file_size)}</td></tr>
+                        <tr><td><strong>Dimensions:</strong></td><td>${response.width}x${response.height}</td></tr>
+                        <tr><td><strong>Content Type:</strong></td><td>${response.content_type}</td></tr>
+                        <tr><td><strong>Seed:</strong></td><td>${response.seed || 'Random'}</td></tr>
+                    </table>
+                    <div class="mt-3">
+                        <a href="${downloadUrl}" class="btn btn-success" download>
+                            <i class="fas fa-download me-2"></i>Download Image
+                        </a>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Prompt Used:</h6>
+                        <p class="text-muted small">${response.prompt}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        this.testResults.style.display = 'block';
+        this.testResults.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    displayAllModelsResult(response) {
+        const results = response.results;
+        
+        let html = `
+            <div class="mb-3">
+                <h6>Test Summary</h6>
+                <p><strong>Test Prompt:</strong> ${response.test_prompt}</p>
+                <p><strong>Total Models:</strong> ${response.total_models}</p>
+                <p><strong>Successful:</strong> ${response.successful_models}</p>
+            </div>
+            <div class="row">
+        `;
+        
+        results.forEach(result => {
+            if (result.success) {
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0">${result.model.toUpperCase()} Model</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr><td><strong>Generation Time:</strong></td><td>${result.generation_time}s</td></tr>
+                                    <tr><td><strong>File Size:</strong></td><td>${Utils.formatFileSize(result.file_size)}</td></tr>
+                                    <tr><td><strong>Content Type:</strong></td><td>${result.content_type}</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-danger text-white">
+                                <h6 class="mb-0">${result.model.toUpperCase()} Model - FAILED</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-danger">${result.error}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        html += '</div>';
+        
+        this.testResultsContent.innerHTML = html;
+        this.testResults.style.display = 'block';
+        this.testResults.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    new PollinationsTest();
+});
+</script>
+{% endblock %}
