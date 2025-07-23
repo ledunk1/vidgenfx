@@ -1,0 +1,21 @@
+{
+  "video_effects": {
+    "zoom_in_probability": 30,
+    "zoom_out_probability": 30,
+    "pan_right_probability": 10,
+    "pan_left_probability": 10,
+    "pan_up_probability": 10,
+    "pan_down_probability": 10,
+    "no_effect_probability": 0,
+    "fade_probability": 100,
+    "ken_burns_intensity": 0.08,
+    "fade_duration": 0.5
+  },
+  "gemini_api_key": " ",
+  "imagefx_auth_token": " ",
+  "default_gemini_model": "gemini-2.0-flash",
+  "default_imagefx_model": "IMAGEN_3_5",
+  "default_aspect_ratio": "IMAGE_ASPECT_RATIO_PORTRAIT",
+  "default_image_provider": "imagefx",
+  "default_text_provider": "gemini"
+}

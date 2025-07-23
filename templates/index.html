@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Video Generator Bot - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="hero-section text-center py-5 mb-5">
+            <div class="container">
+                <h1 class="display-4 fw-bold text-white mb-4">
+                    <i class="fas fa-video me-3"></i>Video Generator Bot
+                </h1>
+                <p class="lead text-white mb-4">
+                    Transform your text into stunning videos with AI-powered image generation and automatic editing
+                </p>
+                <div class="row justify-content-center">
+                    <div class="col-md-10">
+                        <div class="feature-grid">
+                            <div class="feature-item">
+                                <i class="fas fa-magic feature-icon"></i>
+                                <h5>AI-Powered</h5>
+                                <p>Uses Gemini AI to create compelling image prompts from your text</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-images feature-icon"></i>
+                                <h5>ImageFX Integration</h5>
+                                <p>Generates high-quality images using Google's ImageFX technology</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-film feature-icon"></i>
+                                <h5>Auto Video Editing</h5>
+                                <p>Automatic zoom effects, transitions, and audio synchronization</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-microphone feature-icon"></i>
+                                <h5>TTS Narration</h5>
+                                <p>Generate AI narration automatically from your text</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="{{ url_for('main.tts_video_generator') }}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-microphone me-2"></i>TTS Video Generator
+                    </a>
+                    <a href="{{ url_for('main.video_generator') }}" class="btn btn-light btn-lg me-3">
+                        <i class="fas fa-play-circle me-2"></i>Classic Generator
+                    </a>
+                    <a href="{{ url_for('main.settings') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-cog me-2"></i>Setup API Keys
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 feature-card">
+            <div class="card-body text-center">
+                <i class="fas fa-microphone fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">TTS Video Generator</h5>
+                <p class="card-text">Enter text and let AI generate narration and matching visuals automatically</p>
+                <div class="mb-3">
+                    <span class="badge bg-success me-1">NEW</span>
+                    <span class="badge bg-info">AI Narration</span>
+                </div>
+                <a href="{{ url_for('main.tts_video_generator') }}" class="btn btn-primary">Start Creating</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 feature-card">
+            <div class="card-body text-center">
+                <i class="fas fa-upload fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Classic Video Generator</h5>
+                <p class="card-text">Upload your own text file and audio narration for custom videos</p>
+                <div class="mb-3">
+                    <span class="badge bg-secondary">Classic</span>
+                    <span class="badge bg-warning">Custom Audio</span>
+                </div>
+                <a href="{{ url_for('main.video_generator') }}" class="btn btn-success">Upload Files</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 feature-card">
+            <div class="card-body text-center">
+                <i class="fas fa-cogs fa-3x text-info mb-3"></i>
+                <h5 class="card-title">AI Processing</h5>
+                <p class="card-text">Our AI analyzes your content and generates perfect visual prompts</p>
+                <div class="badge bg-info">Automated</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 feature-card">
+            <div class="card-body text-center">
+                <i class="fas fa-magic fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Prompt Templates</h5>
+                <p class="card-text">Create and manage custom prompt templates for consistent styling</p>
+                <a href="{{ url_for('main.prompt_templates') }}" class="btn btn-warning">Manage Templates</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 feature-card">
+            <div class="card-body text-center">
+                <i class="fas fa-download fa-3x text-secondary mb-3"></i>
+                <h5 class="card-title">File Management</h5>
+                <p class="card-text">Download and manage your generated videos and assets</p>
+                <a href="{{ url_for('main.file_manager') }}" class="btn btn-secondary">View Files</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card info-card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle me-2"></i>How It Works
+                </h5>
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="step-number">1</div>
+                        <h6>Enter Text</h6>
+                        <p class="small">Type your content or upload text file</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="step-number">2</div>
+                        <h6>AI Processing</h6>
+                        <p class="small">AI generates prompts and TTS narration</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="step-number">3</div>
+                        <h6>Image Generation</h6>
+                        <p class="small">ImageFX creates stunning visuals</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="step-number">4</div>
+                        <h6>Video Creation</h6>
+                        <p class="small">Automatic editing with effects and transitions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

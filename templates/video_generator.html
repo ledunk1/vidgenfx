@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}Video Generator - Create Video{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-play-circle me-2"></i>Video Generator
+        </h2>
+    </div>
+</div>
+
+<!-- Step 1: Upload Files -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-upload me-2"></i>Step 1: Upload Files
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="upload-area" id="textUploadArea">
+                            <i class="fas fa-file-text fa-3x mb-3"></i>
+                            <h6>Drag & Drop Text File</h6>
+                            <p class="text-muted">Or click to browse (.txt files only)</p>
+                            <input type="file" id="textFile" accept=".txt" style="display: none;">
+                        </div>
+                        <div id="textFileInfo" class="file-info mt-2" style="display: none;"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="upload-area" id="audioUploadArea">
+                            <i class="fas fa-music fa-3x mb-3"></i>
+                            <h6>Drag & Drop Audio File</h6>
+                            <p class="text-muted">Or click to browse (.mp3, .wav, .ogg, .m4a, .aac)</p>
+                            <input type="file" id="audioFile" accept=".mp3,.wav,.ogg,.m4a,.aac" style="display: none;">
+                        </div>
+                        <div id="audioFileInfo" class="file-info mt-2" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: AI Configuration -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>Step 2: AI Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="textMode" class="form-label">Text Processing Mode</label>
+                        <select class="form-select" id="textMode">
+                            <option value="paragraph">Paragraph</option>
+                            <option value="sentence">Sentence</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="promptTemplate" class="form-label">Prompt Template</label>
+                        <select class="form-select" id="promptTemplate">
+                            <option value="">Default (No Template)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="aspectRatio" class="form-label">Aspect Ratio</label>
+                        <select class="form-select" id="aspectRatio">
+                            {% for key, value in aspect_ratios.items() %}
+                            <option value="{{ value.value }}">{{ value.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Text Generation Provider Selection -->
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="textProvider" class="form-label">
+                            <i class="fas fa-brain me-1"></i>Text Generation Provider
+                            <span class="badge bg-success ms-1">NEW</span>
+                        </label>
+                        <select class="form-select" id="textProvider">
+                            {% for key, value in text_providers.items() %}
+                            <option value="{{ key }}" {% if key == 'gemini' %}selected{% endif %}>{{ value.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="textModel" class="form-label">Text Model</label>
+                        <select class="form-select" id="textModel">
+                            <!-- Will be populated by JavaScript based on provider -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- Text Provider Info -->
+                        <div id="textProviderInfo" class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="textProviderInfoText">Select a text provider to see details</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Image Generation Provider Selection -->
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="imageProvider" class="form-label">
+                            <i class="fas fa-images me-1"></i>Image Generation Provider
+                        </label>
+                        <select class="form-select" id="imageProvider">
+                            {% for key, value in image_providers.items() %}
+                            <option value="{{ key }}" {% if key == 'imagefx' %}selected{% endif %}>{{ value.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="imageModel" class="form-label">Image Model</label>
+                        <select class="form-select" id="imageModel">
+                            <!-- Will be populated by JavaScript based on provider -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- Image Provider Info -->
+                        <div id="imageProviderInfo" class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="imageProviderInfoText">Select an image provider to see details</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 3: Video Effects Settings -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card video-effects-container">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-magic me-2"></i>Step 3: Video Effects Settings
+                    <span class="badge bg-info ms-2">NEW</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Master Toggle -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="effectsEnabled" checked>
+                                <label class="form-check-label" for="effectsEnabled">
+                                    <strong><i class="fas fa-power-off me-2"></i>Enable Video Effects</strong>
+                                </label>
+                            </div>
+                            <small class="text-muted">Master toggle to enable/disable all video effects</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motion Effects Toggle -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="motionEffectsEnabled" checked>
+                            <label class="form-check-label" for="motionEffectsEnabled">
+                                <strong><i class="fas fa-arrows-alt me-2"></i>Enable Motion Effects</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motion Effects -->
+                <div id="motionEffectsSection">
+                    <h6 class="text-primary mb-3"><i class="fas fa-layer-group me-2"></i>Motion Effects (Total: 100%)</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="zoomInProbability" class="form-label">Zoom In (%)</label>
+                            <input type="range" class="form-range" id="zoomInProbability" min="0" max="100" value="30">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="zoomInValue" class="badge bg-primary">30%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="zoomOutProbability" class="form-label">Zoom Out (%)</label>
+                            <input type="range" class="form-range" id="zoomOutProbability" min="0" max="100" value="30">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="zoomOutValue" class="badge bg-primary">30%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="noEffectProbability" class="form-label">No Effect (%)</label>
+                            <input type="range" class="form-range" id="noEffectProbability" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="noEffectValue" class="badge bg-secondary">0%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label for="panRightProbability" class="form-label">Pan Right (%)</label>
+                            <input type="range" class="form-range" id="panRightProbability" min="0" max="100" value="10">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="panRightValue" class="badge bg-success">10%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="panLeftProbability" class="form-label">Pan Left (%)</label>
+                            <input type="range" class="form-range" id="panLeftProbability" min="0" max="100" value="10">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="panLeftValue" class="badge bg-success">10%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="panUpProbability" class="form-label">Pan Up (%)</label>
+                            <input type="range" class="form-range" id="panUpProbability" min="0" max="100" value="10">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="panUpValue" class="badge bg-success">10%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="panDownProbability" class="form-label">Pan Down (%)</label>
+                            <input type="range" class="form-range" id="panDownProbability" min="0" max="100" value="10">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="panDownValue" class="badge bg-success">10%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Effect Intensity -->
+                    <h6 class="text-success mb-3"><i class="fas fa-sliders-h me-2"></i>Effect Intensity</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="kenBurnsIntensity" class="form-label">Ken Burns Intensity</label>
+                            <input type="range" class="form-range" id="kenBurnsIntensity" min="0.02" max="0.20" step="0.01" value="0.08">
+                            <div class="d-flex justify-content-between">
+                                <small>0.02 (Subtle)</small>
+                                <span id="kenBurnsValue" class="badge bg-success">0.08</span>
+                                <small>0.20 (Dramatic)</small>
+                            </div>
+                            <small class="text-muted">Controls the intensity of zoom and pan movements</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transition Effects Toggle -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="transitionEffectsEnabled" checked>
+                            <label class="form-check-label" for="transitionEffectsEnabled">
+                                <strong><i class="fas fa-exchange-alt me-2"></i>Enable Transition Effects</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transition Effects -->
+                <div id="transitionEffectsSection">
+                    <h6 class="text-warning mb-3"><i class="fas fa-exchange-alt me-2"></i>Transition Effects (Independent)</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="fadeProbability" class="form-label">Fade Transition Probability (%)</label>
+                            <input type="range" class="form-range" id="fadeProbability" min="0" max="100" value="100">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="fadeValue" class="badge bg-warning">100%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fadeDuration" class="form-label">Fade Duration (seconds)</label>
+                            <input type="range" class="form-range" id="fadeDuration" min="0.1" max="2.0" step="0.1" value="0.5">
+                            <div class="d-flex justify-content-between">
+                                <small>0.1s</small>
+                                <span id="fadeDurationValue" class="badge bg-warning">0.5s</span>
+                                <small>2.0s</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Summary and Controls -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Effects Summary:</strong>
+                            <div class="mt-2">
+                                <span class="badge bg-primary me-2">Total Motion Effects: <span id="totalMotionProbability">100%</span></span>
+                                <span class="badge bg-warning">Fade Transitions: <span id="totalFadeProbability">100%</span></span>
+                            </div>
+                            <div class="mt-1">
+                                <small>All motion effects should add up to 100%. Fade transitions are applied independently.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button type="button" class="btn btn-secondary" id="resetEffects">
+                            <i class="fas fa-undo me-2"></i>Reset to Default
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 4: Generate Video -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-play me-2"></i>Step 4: Generate Video
+                </h5>
+            </div>
+            <div class="card-body">
+                <button id="generateVideoBtn" class="btn btn-primary btn-lg" disabled>
+                    <i class="fas fa-play-circle me-2"></i>Generate Video
+                </button>
+                <div id="generationProgress" class="mt-3" style="display: none;">
+                    <div class="progress mb-2">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div id="progressText" class="text-muted"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="row" id="resultsSection" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>Generation Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/video_generator.js') }}"></script>
+{% endblock %}
