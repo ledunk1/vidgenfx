@@ -410,6 +410,23 @@ def create_video_from_tts_segments(segments, output_path, aspect_ratio='landscap
             '-slices', str(threading_detector.threading_config['ffmpeg_threads']),
         ])
         
+        # Add additional performance optimizations
+        if gpu_detector.has_gpu_acceleration():
+            # GPU-specific optimizations
+            if 'qsv' in gpu_params['codec']:
+                ffmpeg_params.extend(['-async_depth', '4'])  # Intel QSV optimization
+            elif 'nvenc' in gpu_params['codec']:
+                ffmpeg_params.extend(['-2pass', '0', '-gpu', '0'])  # NVIDIA optimization
+            elif 'amf' in gpu_params['codec']:
+                ffmpeg_params.extend(['-usage', 'transcoding', '-preanalysis', '1'])  # AMD optimization
+        else:
+            # CPU optimizations for maximum speed
+            ffmpeg_params.extend([
+                '-x264-params', f'threads={threading_detector.threading_config["ffmpeg_threads"]}',
+                '-preset', 'fast',  # Fast but stable encoding preset
+                '-tune', 'fastdecode'    # Optimize for fast decoding
+            ])
+        
         write_params['ffmpeg_params'] = ffmpeg_params
         
         # Log performance configuration
