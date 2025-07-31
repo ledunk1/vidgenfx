@@ -449,12 +449,12 @@ def create_video_from_images(images, audio_path, output_path, aspect_ratio='land
             elif 'nvenc' in gpu_params['codec']:
                 ffmpeg_params.extend(['-2pass', '0', '-gpu', '0'])  # NVIDIA optimization
             elif 'amf' in gpu_params['codec']:
-                ffmpeg_params.extend(['-usage', 'transcoding'])  # AMD optimization
+                ffmpeg_params.extend(['-usage', 'transcoding', '-preanalysis', '1'])  # AMD optimization
         else:
             # CPU optimizations for maximum speed
             ffmpeg_params.extend([
                 '-x264-params', f'threads={threading_detector.threading_config["ffmpeg_threads"]}',
-                '-preset', 'ultrafast',  # Fastest encoding preset
+                '-preset', 'fast',  # Fast but stable encoding preset
                 '-tune', 'fastdecode'    # Optimize for fast decoding
             ])
         
