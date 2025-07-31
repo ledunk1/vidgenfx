@@ -218,7 +218,7 @@ class GPUDetector:
             params['ffmpeg_params'] = ['-preset', 'medium', '-global_quality', '23']
         elif self.amd_gpu and 'h264_amf' in self.available_encoders:
             params['codec'] = 'h264_amf'
-            params['ffmpeg_params'] = ['-quality', 'balanced', '-rc', 'vbr_peak']
+            params['ffmpeg_params'] = ['-quality', 'balanced', '-rc', 'vbr_peak', '-qp_i', '23', '-qp_p', '23']
         elif self.nvidia_gpu and 'h264_nvenc' in self.available_encoders:
             params['codec'] = 'h264_nvenc'
             params['ffmpeg_params'] = ['-preset', 'medium', '-cq', '23']
